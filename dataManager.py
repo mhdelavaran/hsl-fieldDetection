@@ -81,6 +81,8 @@ class dataManager():
                     else:
                         self.valSetSecondPointUsedLabel.append([1])
                         self.valSetSecondPointLabel.append([float(data[5]), float(data[6])])
+        print("trainSet Size: ",len(self.trainSet), "valSet size : ",len(self.valSet))
+
 
 
 
