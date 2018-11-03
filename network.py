@@ -69,38 +69,21 @@ class network():
         return tf.nn.max_pool(tensor, [1, kernelSize, kernelSize, 1], [1, strides, strides, 1], 'SAME')
 
     def model(self):
-        tensor = self.conv2d(self.input, 16, 7, 2,"conv1")
+        tensor = self.conv2d(self.input, 16, 5, 2,"conv1")
         tensor = self.maxPooling(tensor, 2, 2)
-        tensor = self.conv2d(tensor, 16, 5, 2, "conv2")
+        tensor = self.conv2d(tensor, 16, 3, 1, "conv2")
         tensor = self.maxPooling(tensor, 2, 2)
-        tensor = self.conv2d(tensor, 32, 3, 2, "conv3")
-        # tensor = self.maxPooling(tensor, 2, 2)
-        # tensor = self.conv2d(tensor, 16, 3, 2, "conv4")
+        tensor = self.conv2d(tensor, 24, 3, 1, "conv3")
+        tensor = self.maxPooling(tensor, 2, 2)
+        tensor = self.conv2d(tensor, 32, 3, 1, "conv4")
         # tensor = self.maxPooling(tensor, 2, 2)
         tensor = self.flatten(tensor)
 
-        tensor = self.fullyConnect(tensor, 32, "fc1")
+        tensor = self.fullyConnect(tensor, 42, "fc1")
+        tf.summary.histogram("fcOut", tensor)
         tensor = self.outPutRegression(tensor, 10, "out")
-
-        #
-        # Rhead = self.fullyConnect(FC, 20, "Rfc1")
-        # point4 = self.outPutRegression(Rhead, 8, "Rout")
-        #
-        # # RMidhead = self.fullyConnect(FC, 10, "Rmid")
-        # midPoint = self.outPutRegression(Rhead, 2, "RmidOut2")
-        #
-        #
-        # Chead = self.fullyConnect(FC, 26, "Cfc1")
-        # Chead = tf.nn.dropout(Chead, 0.75)
-        # Chead = self.outPutClassification(Chead, 1, "Cout")
-
-
-
-
-
-
         tf.summary.histogram("outRes", tensor)
-        # tf.summary.histogram("secPoint", midPoint)
+
         # tf.summary.histogram("usedSec", Chead)
         return tensor
 

@@ -1,10 +1,5 @@
 import cfg
 import tensorflow as tf
-import cv2 as cv
-import numpy as np
-import random
-from PIL import Image
-import os
 import sys
 import network
 import dataManager
@@ -39,8 +34,8 @@ class teacher():
 
 		self.sess = tf.Session()
 		self.merged = tf.summary.merge_all()
-		self.train_writer = tf.summary.FileWriter('logs/day6/' + str(nTry) + "/train", self.sess.graph, flush_secs=10)
-		self.test_writer = tf.summary.FileWriter('logs/day6/' + str(nTry) + "/test", self.sess.graph, flush_secs=10)
+		self.train_writer = tf.summary.FileWriter('logs/expDay1/' + str(nTry) + "/train", self.sess.graph, flush_secs=10)
+		self.test_writer = tf.summary.FileWriter('logs/expDay1/' + str(nTry) + "/test", self.sess.graph, flush_secs=10)
 		self.sess.run(tf.global_variables_initializer())
 
 	def costFunction(self):
@@ -70,9 +65,8 @@ class teacher():
 			tf.summary.scalar('pointsLose', pointsLose)
 			tf.summary.scalar('leftSlopPenalty', leftSlopPenalty)
 			tf.summary.scalar('rightSlopPenalty', rightSlopPenalty)
-			# tf.summary.scalar('helperPointUsedlose', helperPointUsedlose)
 
-	def train(self,nTry):
+	def train(self):
 		with tf.name_scope("train"):
 			counter = 0
 			valtrainSet, valOutPut ,used= self.dataSet.getValSet()
@@ -85,7 +79,7 @@ class teacher():
 					self.test_writer.add_summary(summary, counter)
 					counter = counter + 1
 				print("valLose--------------------------------------------",i,self.valLose)
-			self.saver.save(self.sess, './modelsDay6/'+str(nTry))
+			self.saver.save(self.sess, './models/day1/'+str(self.nTry))
 
 
 train = teacher(sys.argv[1])
