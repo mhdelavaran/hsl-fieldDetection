@@ -41,8 +41,8 @@ class detector:
             cv2.imshow("test", data)
             cv2.waitKey(0)
 
-test = detector("./modelsDay6/","10.meta")
-test.detectFolder("/home/hsl/deli/dataSet/arashRahmaniTest/")
+test = detector("./models/day1/","9.meta")
+test.detectFolder("/home/hsl/deli/dataSet/160/")
 
 
 
