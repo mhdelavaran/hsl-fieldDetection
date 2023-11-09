@@ -1,100 +1,42 @@
 import tensorflow as tf
-import cv2 as cv
-import numpy as np
-import random
-from PIL import Image
-import os
-import sys
 import cfg
 
-
-class network():
+class Network(tf.keras.Model):
     def __init__(self):
-        self.inputImageSize = cfg.imgSize
-        self.inputImageNChanel = cfg.imgChanel
-        self.input = tf.placeholder(tf.float32, [None, self.inputImageSize, self.inputImageSize, self.inputImageNChanel], name='input')
+        super(Network, self).__init__()
 
-    def conv2d(self, tensor, outPutFilters, kernelSize, stride, name):
-        with tf.name_scope(name):
-            inputFilters = int(tensor.get_shape()[3])
-            w = tf.Variable(tf.truncated_normal([kernelSize, kernelSize, inputFilters, outPutFilters], stddev=0.01), name ="w")
-            b = tf.Variable(tf.ones([outPutFilters]) / 100, name ="b")
-            stride = [1, stride, stride, 1]
-            tensor = tf.nn.conv2d(tensor, w, strides=stride, padding='SAME')
-            tensor = tf.nn.bias_add(tensor, b)
-            tf.summary.histogram("w", w)
-            tf.summary.histogram("b", b)
-            tensor = tf.nn.relu(tensor)
-        return tensor
+        # Define the layers for your network
+        self.conv1 = tf.keras.layers.Conv2D(16, (5, 5), strides=2, activation='relu', padding='same', name='conv1')
+        self.pool1 = tf.keras.layers.MaxPooling2D((2, 2), strides=2, padding='same')
+        self.conv2 = tf.keras.layers.Conv2D(16, (3, 3), activation='relu', padding='same', name='conv2')
+        self.pool2 = tf.keras.layers.MaxPooling2D((2, 2), strides=2, padding='same')
+        self.conv3 = tf.keras.layers.Conv2D(24, (3, 3), activation='relu', padding='same', name='conv3')
+        self.pool3 = tf.keras.layers.MaxPooling2D((2, 2), strides=2, padding='same')
+        self.conv4 = tf.keras.layers.Conv2D(32, (3, 3), activation='relu', padding='same', name='conv4')
+        self.flatten = tf.keras.layers.Flatten(name='flatten')
+        self.fc1 = tf.keras.layers.Dense(42, activation='relu', name='fc1')
+        self.out = tf.keras.layers.Dense(10, name='out')
 
-    def flatten(self, tensor):
-        tensorSize = tensor.get_shape().as_list()
-        batchSize = tensorSize[0]
-        newTensorSize = tensorSize[1] * tensorSize[2] * tensorSize[3]
-        return tf.contrib.layers.flatten(tensor, [batchSize, newTensorSize])
+    def call(self, inputs):
+        # Define the forward pass
+        x = self.conv1(inputs)
+        x = self.pool1(x)
+        x = self.conv2(x)
+        x = self.pool2(x)
+        x = self.conv3(x)
+        x = self.pool3(x)
+        x = self.conv4(x)
+        x = self.flatten(x)
+        x = self.fc1(x)
+        out = self.out(x)
+        return out
 
-    def fullyConnect(self, tensor, numNurun,name):
-        with tf.name_scope(name):
-            _input = int(tensor.get_shape()[1])
-            w = tf.Variable(tf.truncated_normal([_input, numNurun], stddev=0.01), name = "w")
-            b = tf.Variable(tf.ones(numNurun) / 100,name = "b")
-            tensor = tf.add(tf.matmul(tensor, w), b)
-            tf.summary.histogram("w", w)
-            tf.summary.histogram("b", b)
-            tensor = tf.nn.relu(tensor)
-        return tensor
+if __name__ == '__main__':
+    # Create an instance of the Network class
+    model = Network()
 
-    def outPutRegression(self, tensor, numClass,name):
-        with tf.name_scope(name):
-            numInPut = int(tensor.get_shape()[1])
-            w = tf.Variable(tf.truncated_normal([numInPut, numClass], stddev=0.01), name = "w")
-            b = tf.Variable(tf.ones(numClass) / 100, name = "b")
-            tensor = tf.add(tf.matmul(tensor, w), b)
-            tf.summary.histogram("w", w)
-            tf.summary.histogram("b", b)
-        return tensor
-
-    def outPutClassification(self, tensor, numClass,name):
-        with tf.name_scope(name):
-            numInPut = int(tensor.get_shape()[1])
-            w = tf.Variable(tf.truncated_normal([numInPut, numClass], stddev=0.01),name = "w")
-            b = tf.Variable(tf.ones(numClass) / 100, name = "b")
-            tensor = tf.add(tf.matmul(tensor, w), b)
-            tf.summary.histogram("w", w)
-            tf.summary.histogram("b", b)
-            tensor = tf.nn.relu(tensor)
-        return tensor
-
-    def maxPooling(self,tensor, kernelSize, strides):
-        return tf.nn.max_pool(tensor, [1, kernelSize, kernelSize, 1], [1, strides, strides, 1], 'SAME')
-
-    def model(self):
-        tensor = self.conv2d(self.input, 16, 5, 2,"conv1")
-        tensor = self.maxPooling(tensor, 2, 2)
-        tensor = self.conv2d(tensor, 16, 3, 1, "conv2")
-        tensor = self.maxPooling(tensor, 2, 2)
-        tensor = self.conv2d(tensor, 24, 3, 1, "conv3")
-        tensor = self.maxPooling(tensor, 2, 2)
-        tensor = self.conv2d(tensor, 32, 3, 1, "conv4")
-        # tensor = self.maxPooling(tensor, 2, 2)
-        tensor = self.flatten(tensor)
-
-        tensor = self.fullyConnect(tensor, 42, "fc1")
-        tf.summary.histogram("fcOut", tensor)
-        tensor = self.outPutRegression(tensor, 10, "out")
-        tf.summary.histogram("outRes", tensor)
-
-        # tf.summary.histogram("usedSec", Chead)
-        return tensor
-
-nn = network()
-outPut= nn.model()
-outPut = tf.identity(outPut, name = "outPut")
-# outPut = tf.identity(primeryPoints, name='primeryPoints')
-# secnderyPoint = tf.identity(secnderyPoint, name='secnderyPoint')
-# secnderyPointUsed = tf.identity(secnderyPointUsed, name='secnderyPointUsedOutPut')
-
-if __name__=='__main__':
+    # Initialize variables and create a session
     init = tf.global_variables_initializer()
     with tf.Session() as sess:
+        # Instantiate a writer for TensorBoard
         writer = tf.summary.FileWriter('./graphs', sess.graph)
